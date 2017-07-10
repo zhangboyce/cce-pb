@@ -28,7 +28,7 @@ require('shelljs/global');
 
 let __exec__ = command => {
     echo(command + ': ');
-    exec(command);
+    return exec(command);
 };
 
 let projectName = pms[argv.project];
