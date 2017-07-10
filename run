@@ -52,17 +52,20 @@ if (fs.existsSync(projectPath) && fs.lstatSync(projectPath).isDirectory()) {
 
     let pid = findPid();
     if (pid) {
-        prompt(`Are you sure kill the pid[${ pid }] and restart the project ${ projectName }? `,
-            `nohup node ${ projectName } > ${ projectDir }logs/${ projectName }.log 2>&1 &`);
+        prompt(`Are you sure kill the pid[${ pid }] and restart the project ${ projectName }? `, () => {
+            __exec__(`kill ${ pid }`);
+            __exec__(`nohup node ${ projectName } > ${ projectDir }logs/${ projectName }.log 2>&1 &`);
+        });
     } else {
-        prompt(`Are you sure start the project ${ projectName }? `,
-            `nohup node ${ projectName } > ${ projectDir }logs/${ projectName }.log 2>&1 &`);
+        prompt(`Are you sure start the project ${ projectName }? `,() => {
+            __exec__(`nohup node ${ projectName } > ${ projectDir }logs/${ projectName }.log 2>&1 &`);
+        })
     }
 } else {
     echo('No project ' + projectName);
 }
 
-function prompt(prompt, command) {
+function prompt(prompt, callback) {
     echo(`${ prompt } [y/n/yes/no]: `);
     let stdin = process.openStdin();
     stdin.addListener("data", function(d) {
@@ -70,7 +73,8 @@ function prompt(prompt, command) {
             let __d__ = d.toString().trim().slice(0, 1).toUpperCase();
             if (__d__ == 'N') exit();
             else if (__d__ == 'Y') {
-                __exec__(command);
+                callback();
+                echo(`tail -f ${ projectDir }logs/${ projectName }.log`);
                 exit();
             } else {
                 echo(d.toString());
