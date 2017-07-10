@@ -41,7 +41,7 @@ if (fs.existsSync(projectName) && fs.lstatSync(projectName).isDirectory()) {
     let s = __exec__('ps -ef | grep node');
     let pid;
     let logs = s.split('\n');
-    logs = logs.filter(log => log.indexOf(projectName) != -1);
+    logs = logs.filter(log => log.trim().split(/\s+/).includes(projectName));
     if (logs.length == 1) {
         let __log__ = logs[0];
         echo(`Find the project ${ projectName }'s log: ${ __log__ }`);
