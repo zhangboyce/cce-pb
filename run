@@ -2,6 +2,11 @@
 'use strict';
 let fs = require('fs');
 require('shelljs/global');
+process.env.NODE_CONFIG_DIR = __dirname +'/config';
+let config = require('config');
+
+let alias = config.get('alias');
+let projectDir = config.get('projectDir');
 
 let argv = require('yargs')
     .option('p', {
@@ -10,15 +15,10 @@ let argv = require('yargs')
         type:'string'
     })
     .usage('Usage: run [options]')
-    .example('run -p front',
-        `rebuild and restart cce-ato-boom-front project.`)
+    .example('restart -p front',
+        `rebuild and restart cce-ato-boom-front project. alias: ${ JSON.stringify(alias) }`)
     .help('help')
     .argv;
-
-process.env.NODE_CONFIG_DIR = __dirname +'/config';
-let config = require('config');
-let alias = config.get('alias');
-let projectDir = config.get('projectDir');
 
 let __exec__ = command => {
     echo('>> ' + command);
@@ -87,7 +87,10 @@ function findPid() {
     let s = __exec__('ps -ef | grep node');
     let pid;
     let logs = s.split('\n');
-    logs = logs.filter(log => log.trim().split(/\s+/).includes(projectName));
+    logs = logs.filter(log => {
+        let temp = log.trim().split(/\s/);
+        return temp.includes(projectName) && !temp.includes('-p');
+    });
     if (logs.length == 1) {
         let __log__ = logs[0];
         echo(`Find the project ${ projectName }'s log: ${ __log__ }`);
