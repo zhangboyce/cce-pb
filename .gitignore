@@ -3,5 +3,4 @@
 *.iml
 node_modules/
 build/
-config/*
 log/*

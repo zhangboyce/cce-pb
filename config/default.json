@@ -1,0 +1,9 @@
+{
+  "alias": {
+    "front": "cce-ato-boom-front",
+    "sso": "cce-ato-sso",
+    "winter": "winter-coming-editor",
+    "winter-manager": "winter-coming-editor-manager"
+  },
+  "projectDir":"/Users/Boyce/IdeaProjects"
+}
