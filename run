@@ -71,7 +71,8 @@ if (fs.existsSync(projectName) && fs.lstatSync(projectName).isDirectory()) {
                 }
             }
         });
-
+    } else {
+        __exec__(`nohup node ${ projectName } > /home/lection/ato/${ projectName }.log 2>&1 &`);
     }
 } else {
     echo('No project ' + projectName);
