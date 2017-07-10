@@ -1,0 +1,13 @@
+{
+  "name": "cce-pb",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "shelljs": "^0.7.4",
+    "co": "^4.6.0",
+    "yargs": "^5.0.0"
+  },
+  "bin": {
+    "restart": "run"
+  }
+}

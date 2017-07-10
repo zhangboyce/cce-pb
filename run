@@ -1,0 +1,73 @@
+#!/usr/bin/env node
+'use strict';
+let fs = require('fs');
+
+let argv = require('yargs')
+    .option('p', {
+        demand: 'true',
+        alias:'project',
+        type:'string',
+        describe: 'the data-type you will export.',
+        choices: ['test', 'front', 'sso', 'winter', 'winter-manager']
+    })
+    .usage('Usage: run [options]')
+    .example('run -p front',
+        `rebuild cce-ato-boom-front project.`)
+    .help('help')
+    .argv;
+
+let pms = {
+    test: 'server.js',
+    front: 'cce-ato-boom-front',
+    sso: 'cce-ato-sso',
+    winter: 'winter-coming-editor',
+    'winter-manager': 'winter-coming-editor-manager'
+};
+
+require('shelljs/global');
+
+let projectName = pms[argv.project];
+if (fs.existsSync(projectName) && fs.lstatSync(projectName).isDirectory()) {
+    cd(projectName);
+    exec('git pull origin master');
+    exec('npm install');
+    exec('npm run build');
+}
+
+let s = exec('ps -ef | grep node');
+let pid;
+let logs = s.split('\n');
+logs = logs.filter(log => log.indexOf(projectName) != -1);
+if (logs.length == 1) {
+    let __log__ = logs[0];
+    echo(`Find the project ${ projectName }'s log: ${ __log__ }`);
+    let __logs__ = __log__.trim().split(/\s+/);
+    if (__logs__.length < 2) {
+        echo(`Cannot find pid from log: ${ JSON.stringify(__logs__) }`);
+    } else {
+        pid = __logs__[1];
+        echo(`Find the project ${ projectName }'s pid: ${ pid }`);
+    }
+} else {
+    echo(`Find the project ${ projectName }'s log is illegal: ${ JSON.stringify(logs) }`);
+}
+
+if (pid) {
+    echo(`Are you sure kill the pid[${ pid }] and restart the project ${ projectName }? [y/n/yes/no]: `);
+    let stdin = process.openStdin();
+    stdin.addListener("data", function(d) {
+        if (d) {
+            let __d__ = d.toString().trim().slice(0, 1).toUpperCase();
+            if (__d__ == 'N') exit();
+            else if (__d__ == 'Y') {
+                if (fs.existsSync(projectName) && fs.lstatSync(projectName).isDirectory()) {
+                    exec(`kill ${ pid } `);
+                    exec('npm run start');
+                }
+            } else {
+                echo(d.toString());
+            }
+        }
+    });
+
+}
