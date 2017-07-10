@@ -1,43 +1,85 @@
 #!/usr/bin/env node
 'use strict';
 let fs = require('fs');
+require('shelljs/global');
 
 let argv = require('yargs')
     .option('p', {
         demand: 'true',
         alias:'project',
-        type:'string',
-        describe: 'the data-type you will export.',
-        choices: ['test', 'front', 'sso', 'winter', 'winter-manager']
+        type:'string'
     })
     .usage('Usage: run [options]')
     .example('run -p front',
-        `rebuild cce-ato-boom-front project.`)
+        `rebuild and restart cce-ato-boom-front project.`)
     .help('help')
     .argv;
 
-let pms = {
-    test: 'server.js',
-    front: 'cce-ato-boom-front',
-    sso: 'cce-ato-sso',
-    winter: 'winter-coming-editor',
-    'winter-manager': 'winter-coming-editor-manager'
-};
-
-require('shelljs/global');
+process.env.NODE_CONFIG_DIR = __dirname +'/config';
+let config = require('config');
+let alias = config.get('alias');
+let projectDir = config.get('projectDir');
 
 let __exec__ = command => {
     echo('>> ' + command);
     return exec(command);
 };
 
-let projectName = pms[argv.project];
-if (fs.existsSync(projectName) && fs.lstatSync(projectName).isDirectory()) {
-    cd(projectName);
-    __exec__('git pull origin master');
-    __exec__('npm install');
-    __exec__('npm run build');
+let projectName = alias[argv.project] || argv.project;
+projectDir = projectDir || __dirname;
+projectDir = projectDir.endsWith('/') ? projectDir : projectDir + '/';
+let projectPath = projectDir + projectName;
+process.env.NODE_CONFIG_DIR = projectPath + '/config';
 
+if (fs.existsSync(projectPath) && fs.lstatSync(projectPath).isDirectory()) {
+    cd(projectPath);
+
+    let gitLog = __exec__('git pull origin master');
+    if (gitLog.indexOf('Already up-to-date') == -1) {
+        if(gitLog.indexOf('package.json') != -1) {
+            __exec__('npm install');
+        }
+        __exec__('npm run build');
+    }
+
+    if (!fs.existsSync(projectDir + 'logs')) {
+        fs.mkdirSync(projectDir + 'logs');
+    }
+
+    if (!fs.existsSync(projectName + '.js')) {
+        __exec__(`ln -s server.js ${ projectName }.js`);
+    }
+
+    let pid = findPid();
+    if (pid) {
+        prompt(`Are you sure kill the pid[${ pid }] and restart the project ${ projectName }? `,
+            `nohup node ${ projectName } > ${ projectDir }logs/${ projectName }.log 2>&1 &`);
+    } else {
+        prompt(`Are you sure start the project ${ projectName }? `,
+            `nohup node ${ projectName } > ${ projectDir }logs/${ projectName }.log 2>&1 &`);
+    }
+} else {
+    echo('No project ' + projectName);
+}
+
+function prompt(prompt, command) {
+    echo(`${ prompt } [y/n/yes/no]: `);
+    let stdin = process.openStdin();
+    stdin.addListener("data", function(d) {
+        if (d) {
+            let __d__ = d.toString().trim().slice(0, 1).toUpperCase();
+            if (__d__ == 'N') exit();
+            else if (__d__ == 'Y') {
+                __exec__(command);
+                exit();
+            } else {
+                echo(d.toString());
+            }
+        }
+    });
+}
+
+function findPid() {
     let s = __exec__('ps -ef | grep node');
     let pid;
     let logs = s.split('\n');
@@ -56,25 +98,5 @@ if (fs.existsSync(projectName) && fs.lstatSync(projectName).isDirectory()) {
         echo(`Find the project ${ projectName }'s log is illegal: ${ JSON.stringify(logs) }`);
     }
 
-    if (pid) {
-        echo(`Are you sure kill the pid[${ pid }] and restart the project ${ projectName }? [y/n/yes/no]: `);
-        let stdin = process.openStdin();
-        stdin.addListener("data", function(d) {
-            if (d) {
-                let __d__ = d.toString().trim().slice(0, 1).toUpperCase();
-                if (__d__ == 'N') exit();
-                else if (__d__ == 'Y') {
-                    __exec__(`kill ${ pid } `);
-                    __exec__(`nohup node ${ projectName } > /home/lection/ato/logs/${ projectName }.log 2>&1 &`);
-                    exit();
-                } else {
-                    echo(d.toString());
-                }
-            }
-        });
-    } else {
-        __exec__(`nohup node ${ projectName } > /home/lection/ato/logs/${ projectName }.log 2>&1 &`);
-    }
-} else {
-    echo('No project ' + projectName);
+    return pid;
 }

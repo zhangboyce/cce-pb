@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "dependencies": {
+    "config": "^1.24.0",
     "shelljs": "^0.7.4",
     "co": "^4.6.0",
     "yargs": "^5.0.0"
