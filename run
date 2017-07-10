@@ -26,14 +26,19 @@ let pms = {
 
 require('shelljs/global');
 
+let __exec__ = command => {
+    echo(command + ': ');
+    exec(command);
+};
+
 let projectName = pms[argv.project];
 if (fs.existsSync(projectName) && fs.lstatSync(projectName).isDirectory()) {
     cd(projectName);
-    exec('git pull origin master');
-    exec('npm install');
-    exec('npm run build');
+    __exec__('git pull origin master');
+    __exec__('npm install');
+    __exec__('npm run build');
 
-    let s = exec('ps -ef | grep node');
+    let s = __exec__('ps -ef | grep node');
     let pid;
     let logs = s.split('\n');
     logs = logs.filter(log => log.indexOf(projectName) != -1);
@@ -59,10 +64,8 @@ if (fs.existsSync(projectName) && fs.lstatSync(projectName).isDirectory()) {
                 let __d__ = d.toString().trim().slice(0, 1).toUpperCase();
                 if (__d__ == 'N') exit();
                 else if (__d__ == 'Y') {
-                    if (fs.existsSync(projectName) && fs.lstatSync(projectName).isDirectory()) {
-                        exec(`kill ${ pid } `);
-                        exec(`nohup node ${ projectName } > /home/lection/ato/${ projectName }.log 2>&1 &`);
-                    }
+                    __exec__(`kill ${ pid } `);
+                    __exec__(`nohup node ${ projectName } > /home/lection/ato/${ projectName }.log 2>&1 &`);
                 } else {
                     echo(d.toString());
                 }
