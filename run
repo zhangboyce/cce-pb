@@ -73,4 +73,6 @@ if (fs.existsSync(projectName) && fs.lstatSync(projectName).isDirectory()) {
         });
 
     }
+} else {
+    echo('No project ' + projectName);
 }
