@@ -62,7 +62,7 @@ if (pid) {
             else if (__d__ == 'Y') {
                 if (fs.existsSync(projectName) && fs.lstatSync(projectName).isDirectory()) {
                     exec(`kill ${ pid } `);
-                    exec('npm run start');
+                    exec(`nohup node ${ projectName } > /home/lection/ato/${ projectName }.log 2>&1 &`);
                 }
             } else {
                 echo(d.toString());
