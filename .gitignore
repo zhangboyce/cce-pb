@@ -3,4 +3,5 @@
 *.iml
 node_modules/
 build/
+config/default.json
 log/*
