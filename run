@@ -65,7 +65,7 @@ if (fs.existsSync(projectName) && fs.lstatSync(projectName).isDirectory()) {
                 if (__d__ == 'N') exit();
                 else if (__d__ == 'Y') {
                     __exec__(`kill ${ pid } `);
-                    __exec__(`nohup node ${ projectName } > ./logs/${ projectName }.log 2>&1 &`);
+                    __exec__(`nohup node ${ projectName } > /home/lection/ato/logs/${ projectName }.log 2>&1 &`);
                     exit();
                 } else {
                     echo(d.toString());
@@ -73,7 +73,7 @@ if (fs.existsSync(projectName) && fs.lstatSync(projectName).isDirectory()) {
             }
         });
     } else {
-        __exec__(`nohup node ${ projectName } > ./logs/${ projectName }.log 2>&1 &`);
+        __exec__(`nohup node ${ projectName } > /home/lection/ato/logs/${ projectName }.log 2>&1 &`);
     }
 } else {
     echo('No project ' + projectName);
