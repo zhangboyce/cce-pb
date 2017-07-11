@@ -74,6 +74,7 @@ function prompt(prompt, callback) {
             if (__d__ == 'N') exit();
             else if (__d__ == 'Y') {
                 callback();
+                __exec__('ps -ef | grep ' + projectName);
                 echo(`tail -f ${ projectDir }logs/${ projectName }.log`);
                 exit();
             } else {
