@@ -8,15 +8,26 @@ let config = require('config');
 let alias = config.get('alias');
 let projectDir = config.get('projectDir');
 
+let aliasString = '';
+for (let k in alias) {
+    if (Object.prototype.hasOwnProperty.call(alias, k)) {
+        let v = alias[k];
+        aliasString += '\r\n    ' + k + ': ' + v;
+    }
+}
+
 let argv = require('yargs')
     .option('p', {
         demand: 'true',
         alias:'project',
         type:'string'
     })
-    .usage('Usage: run [options]')
-    .example('restart -p front',
-        `rebuild and restart cce-ato-boom-front project. alias: ${ JSON.stringify(alias) }`)
+    .option('hard', {
+        boolean: true
+    })
+    .usage('Usage: restart -p [options]')
+    .example('restart -p front', 'rebuild and restart the cce-ato-boom-front project. alias: ' + aliasString)
+
     .help('help')
     .argv;
 
@@ -24,6 +35,8 @@ let __exec__ = command => {
     echo('>> ' + command);
     return exec(command);
 };
+
+let hard = argv.hard;
 
 let projectName = alias[argv.project] || argv.project;
 projectDir = projectDir || __dirname;
@@ -35,8 +48,8 @@ if (fs.existsSync(projectPath) && fs.lstatSync(projectPath).isDirectory()) {
     cd(projectPath);
 
     let gitLog = __exec__('git pull origin master');
-    if (gitLog.indexOf('Already up-to-date') == -1) {
-        if(gitLog.indexOf('package.json') != -1) {
+    if (hard || gitLog.indexOf('Already up-to-date') == -1) {
+        if(hard || gitLog.indexOf('package.json') != -1) {
             __exec__('npm install');
         }
         __exec__('npm run build');
